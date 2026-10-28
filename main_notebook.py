@@ -7,20 +7,37 @@ app = marimo.App(width="medium", auto_download=["html"])
 @app.cell
 def _():
     import marimo as mo
+    import pandas as pd
 
-    return (mo,)
+    return mo, pd
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+ 
+    """)
+    return
+
+
+@app.cell
+def _():
+    import marimo as mo
+    import pandas as pd
+
+    return mo, pd
 
 
 @app.cell
 def _(mo):
     mo.md("""
     # 1. Project Overview and Context
-    *Authorship Note: Lead Author: [Abdirahman Mohamed] | Group Members: [Justin Casey, Richie Adu, Gabirel Aina]*
+    *Authorship Note: Lead Author: [Abdirahman Mohamed] | Group Members: [Justin Casey, Richie Adu, Gabriel Aina]*
 
     ## Group Members & Project Roles
     * **[Abdirahman Mohamed]:** Lead Author / Data Pipeline & Governance
-    * **[Justin Casey]:** Group Member / Exploratory Data Analysis & Visualisation
-    * **[Gabriel Aina]:** Group Member / Feature Engineering & Literature Audit
+    * **[Gabriel Aina]:** Group Member / Exploratory Data Analysis & Visualisation
+    * **[Justin Casey]:** Group Member / Feature Engineering & Literature Audit
     * **[Richie Adu]:** Group Member / Feature Engineering & Literature Audit
 
     ## Problem Statement & Business Context (Week 1)
@@ -47,6 +64,46 @@ def _(mo):
     * **Option 1 (Primary Candidate):** `gym_membership.csv` (1,000 records, 17 attributes covering member check-ins, lesson attendance, and membership tiers; CC0 Public Domain via Kaggle).
     * **Option 2 (Alternative):** E-commerce Customer Churn Dataset (Kaggle).
     * **Option 3 (Alternative):** Telecom Subscription Retention Log (UCI Repository).
+    """)
+    return
+
+
+@app.cell
+def _(pd):
+    # Load dataset for quantitative re-identification audit
+    df_raw = pd.read_csv("gym_membership.csv")
+
+    # Group by 4 ordinary quasi-identifiers
+    quasi_cols = ["gender", "Age", "abonoment_type", "avg_time_check_in"]
+    group_sizes = df_raw.groupby(quasi_cols).size()
+    n_singletons = int((group_sizes == 1).sum())
+    singleton_pct = (n_singletons / len(df_raw)) * 100
+    return n_singletons, singleton_pct
+
+
+@app.cell
+def _(mo, n_singletons, singleton_pct):
+    mo.md(f"""
+    # 9. Ethics, Privacy, Security, and Limitations
+    *Authorship Note: Lead Author: [Abdirahman Mohamed]*
+
+    ## 1. Data Type Classification Table (Week 3)
+    | Column Name | Data Type Category | Governance & UK GDPR Justification |
+    |---|---|---|
+    | `id`, `birthday` | Personal Data | Direct/unique identifiers. Must be hashed or dropped prior to modeling (Art. 5(1)(c) Data Minimisation). |
+    | `gender`, `Age`, `abonoment_type`, `avg_time_check_in` | Quasi-Identifiers | Indirect attributes. Combinations create significant linkage re-identification risks. |
+    | `visit_per_week`, `avg_time_in_gym`, `uses_sauna` | Non-Personal Data | Operational and behavioral usage logs. |
+
+    ## 2. Quantitative Re-Identification Check (Week 3)
+    Grouping records by four ordinary quasi-identifiers (`gender`, `Age`, `abonoment_type`, `avg_time_check_in`) reveals that **{n_singletons} out of 1,000 members ({singleton_pct:.1f}%) are uniquely singled out**.
+    * **Governance Implication:** Simply stripping the direct `id` column does **not** render the dataset anonymous. To comply with UK GDPR Article 5(1)(c) (*Data Minimisation*), check-in times and ages must be binned into broader categorical ranges before deployment.
+
+    ## 3. Initial Ethical Risk Register (Week 3)
+    | Risk # | Ethical Vulnerability | Applicable UK GDPR Principle | Mitigation Strategy | Academic Citation |
+    |---|---|---|---|---|
+    | 1 | Re-identification via Quasi-Identifiers | Article 5(1)(c) Data Minimisation | Suppress direct IDs; bin continuous age and check-in times into broader 1-hour windows. | Mittelstadt et al. (2016) |
+    | 2 | Proxy Discrimination in Unsupervised Clustering | Article 5(1)(a) Lawfulness & Fairness | Audit $K$-Means clusters to ensure usage groupings do not proxy for protected attributes like age or gender. | Mittelstadt et al. (2016) |
+    | 3 | Automated Decision Opacity | Article 22 Automated Decision-Making | Maintain human-in-the-loop review for automated tier promotion or retention offers. | Mittelstadt et al. (2016) |
     """)
     return
 
