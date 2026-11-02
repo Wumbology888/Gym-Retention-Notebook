@@ -151,10 +151,7 @@ def _(mo, n_singletons, singleton_pct):
 
 
 @app.cell
-def _(mo):
-    mo.md("""
- 
-    """)
+def _():
     return
 
 
