@@ -155,5 +155,120 @@ def _():
     return
 
 
+@app.cell
+def _(df_raw):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    # Set visualization style
+    sns.set_theme(style="whitegrid")
+
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+    # Figure 1: Weekly Visit Distribution by Membership Tier
+    sns.boxplot(
+        data=df_raw,
+        x="abonoment_type",
+        y="visit_per_week",
+        hue="abonoment_type",
+        palette="Set2",
+        legend=False,
+        ax=axes[0],
+    )
+
+    axes[0].set_title(
+        "1. Weekly Visits by Subscription Tier",
+        fontsize=12,
+        fontweight="bold"
+    )
+    axes[0].set_xlabel("Subscription Tier")
+    axes[0].set_ylabel("Visits per Week")
+
+    # Figure 2: Group Lesson Attendance vs Subscription Tier
+    sns.countplot(
+        data=df_raw,
+        x="abonoment_type",
+        hue="attend_group_lesson",
+        palette="viridis",
+        ax=axes[1],
+    )
+
+    axes[1].set_title(
+        "2. Group Lesson Attendance by Tier",
+        fontsize=12,
+        fontweight="bold"
+    )
+    axes[1].set_xlabel("Subscription Tier")
+    axes[1].set_ylabel("Member Count")
+    axes[1].legend(title="Attends Group Lessons")
+
+    # Figure 3: Average Session Duration Distribution
+    sns.histplot(
+        data=df_raw,
+        x="avg_time_in_gym",
+        hue="abonoment_type",
+        kde=True,
+        element="step",
+        palette="magma",
+        ax=axes[2],
+    )
+
+    axes[2].set_title(
+        "3. Workout Session Duration (Minutes)",
+        fontsize=12,
+        fontweight="bold"
+    )
+    axes[2].set_xlabel("Average Time in Gym (mins)")
+    axes[2].set_ylabel("Frequency")
+
+    plt.tight_layout()
+    plt.show()
+    return
+
+
+@app.cell
+def _(df_raw, mo):
+    # Calculate average visits by membership tier
+    avg_visit_std = df_raw[
+        df_raw["abonoment_type"] == "Standard"
+    ]["visit_per_week"].mean()
+
+    avg_visit_prem = df_raw[
+        df_raw["abonoment_type"] == "Premium"
+    ]["visit_per_week"].mean()
+
+    # Calculate actual session duration range
+    min_duration = df_raw["avg_time_in_gym"].min()
+    max_duration = df_raw["avg_time_in_gym"].max()
+
+    mo.md(
+        f"""
+        # 3. Exploratory Data Analysis (EDA)
+
+        *Authorship Note: Lead Author: Gabriel Aina | Group Contributions: Abdirahman Mohamed, Justin Casey, Richie Adu*
+
+        ## 1. Summary Statistics & Key Usage Indicators
+
+        * **Average Weekly Check-ins:** Standard members average **{avg_visit_std:.1f} visits/week**, whereas Premium members average **{avg_visit_prem:.1f} visits/week**.
+        * **Session Duration Range:** Average gym session lengths in the dataset range from **{min_duration:g} to {max_duration:g} minutes**.
+
+        ## 2. Visual Analysis & Behavioral Findings (Week 5)
+
+        ### Finding 1: Visit Frequency as a Tier Separator (Figure 1)
+
+        The distribution of `visit_per_week` provides a comparison of weekly gym attendance between Standard and Premium members. Differences in visit frequency may help identify whether weekly attendance is a useful feature for predicting membership tiers.
+
+        ### Finding 2: Amenity Engagement & Group Class Dynamics (Figure 2)
+
+        Group fitness lesson participation (`attend_group_lesson`) is compared across subscription tiers to investigate whether participation patterns differ between Standard and Premium members. Additional analysis of `uses_sauna` and `drink_abo` could help identify broader amenity engagement patterns.
+
+        ### Finding 3: Session Duration Distribution (Figure 3)
+
+        The distribution of `avg_time_in_gym` shows how average workout duration varies across membership tiers. Comparing the overlap between distributions can help assess whether session duration is useful for distinguishing subscription types. This may also inform future feature engineering, such as estimating total weekly workout time.
+        """
+    )
+    return
+
+
 if __name__ == "__main__":
     app.run()
