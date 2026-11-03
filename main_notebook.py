@@ -60,7 +60,9 @@ def _(mo):
 @app.cell
 def _(pd):
     # Mechanical audit on gym_membership.csv
-    df_raw = pd.read_csv("gym_membership.csv")
+    df_raw = pd.read_csv(
+    "https://raw.githubusercontent.com/Wumbology888/Gym-Retention-Notebook/main/gym_membership.csv"
+    )
 
     total_records = len(df_raw)
     total_cols = df_raw.shape[1]
