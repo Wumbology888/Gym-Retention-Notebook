@@ -60,9 +60,7 @@ def _(mo):
 @app.cell
 def _(pd):
     # Mechanical audit on gym_membership.csv
-    df_raw = pd.read_csv(
-    "https://raw.githubusercontent.com/Wumbology888/Gym-Retention-Notebook/main/gym_membership.csv"
-    )
+    df_raw = pd.read_csv("gym_membership.csv")
 
     total_records = len(df_raw)
     total_cols = df_raw.shape[1]
@@ -186,23 +184,46 @@ def _(df_raw):
     axes[0].set_xlabel("Subscription Tier")
     axes[0].set_ylabel("Visits per Week")
 
-    # Figure 2: Group Lesson Attendance vs Subscription Tier
-    sns.countplot(
-        data=df_raw,
+
+    # Figure 2: Group Lesson Attendance (%) by Subscription Tier
+
+    # Calculate percentages within each subscription tier
+    group_pct = (
+        df_raw.groupby("abonoment_type")["attend_group_lesson"]
+        .value_counts(normalize=True)
+        .mul(100)
+        .rename("Percentage")
+        .reset_index()
+    )
+
+    # Plot percentages
+    sns.barplot(
+        data=group_pct,
         x="abonoment_type",
+        y="Percentage",
         hue="attend_group_lesson",
         palette="viridis",
         ax=axes[1],
     )
 
     axes[1].set_title(
-        "2. Group Lesson Attendance by Tier",
+        "2. Group Lesson Attendance by Tier (%)",
         fontsize=12,
         fontweight="bold"
     )
     axes[1].set_xlabel("Subscription Tier")
-    axes[1].set_ylabel("Member Count")
+    axes[1].set_ylabel("Percentage of Members (%)")
+    axes[1].set_ylim(0, 100)
     axes[1].legend(title="Attends Group Lessons")
+
+    # Display percentage labels above each bar
+    for container in axes[1].containers:
+        axes[1].bar_label(
+            container,
+            fmt="%.1f%%",
+            padding=3
+        )
+
 
     # Figure 3: Average Session Duration Distribution
     sns.histplot(
